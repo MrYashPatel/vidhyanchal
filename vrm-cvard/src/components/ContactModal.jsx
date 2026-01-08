@@ -4,21 +4,21 @@ const ContactModal = ({ isOpen, onClose }) => {
   const socialLinks = [
     {
       name: 'WhatsApp',
-      href: 'https://wa.me/1234567890',
+      href: 'https://wa.me/918128530118',
       icon: 'fab fa-whatsapp',
       hoverText: 'Go to WhatsApp',
       className: 'whatsapp'
     },
     {
       name: 'Call',
-      href: 'tel:+1234567890',
+      href: 'tel:+918128530118',
       icon: 'fas fa-phone',
       hoverText: 'Make a Call',
       className: 'call'
     },
     {
       name: 'Instagram',
-      href: 'https://instagram.com/yourusername',
+      href: 'https://instagram.com/vrm.resumes',
       icon: 'fab fa-instagram',
       hoverText: 'Go to Instagram',
       className: 'instagram'
