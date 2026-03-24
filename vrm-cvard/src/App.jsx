@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from './components/Card';
 import ScrollIndicators from './components/ScrollIndicators';
 import ContactModal from './components/ContactModal';
@@ -8,6 +8,8 @@ function App() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHomePage, setShowHomePage] = useState(false);
+  const touchStartYRef = useRef(0);
+  const isFlippingRef = useRef(false);
 
   // Check if loaded from QR code scan
   useEffect(() => {
@@ -27,63 +29,32 @@ function App() {
     }
   }, [showHomePage]);
 
-  // Handle wheel and touch events to flip card infinitely (without actual scrolling)
-  useEffect(() => {
-    let touchStartY = 0;
-    let isFlipping = false;
+  const triggerFlip = () => {
+    if (isFlippingRef.current) return;
+    isFlippingRef.current = true;
+    setIsFlipped(prev => !prev);
+    setTimeout(() => {
+      isFlippingRef.current = false;
+    }, 800);
+  };
 
-    const handleWheel = (e) => {
-      if (isFlipping) return;
+  const handleCardWheel = (e) => {
+    if (e.deltaY !== 0) {
+      triggerFlip();
+    }
+  };
 
-      // Scroll down - always flip to back (or keep flipping)
-      if (e.deltaY > 0) {
-        isFlipping = true;
-        setIsFlipped(prev => !prev); // Toggle flip
-        setTimeout(() => { isFlipping = false; }, 800); // Match animation duration
-      }
-      // Scroll up - always flip to front (or keep flipping)
-      else if (e.deltaY < 0) {
-        isFlipping = true;
-        setIsFlipped(prev => !prev); // Toggle flip
-        setTimeout(() => { isFlipping = false; }, 800);
-      }
-    };
+  const handleCardTouchStart = (e) => {
+    touchStartYRef.current = e.touches[0].clientY;
+  };
 
-    const handleTouchStart = (e) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e) => {
-      if (isFlipping) return;
-
-      const touchEndY = e.changedTouches[0].clientY;
-      const deltaY = touchStartY - touchEndY;
-
-      // Swipe up - flip the card
-      if (deltaY > 50) {
-        isFlipping = true;
-        setIsFlipped(prev => !prev);
-        setTimeout(() => { isFlipping = false; }, 800);
-      }
-      // Swipe down - flip the card
-      else if (deltaY < -50) {
-        isFlipping = true;
-        setIsFlipped(prev => !prev);
-        setTimeout(() => { isFlipping = false; }, 800);
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isFlipped]);
+  const handleCardTouchEnd = (e) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaY = touchStartYRef.current - touchEndY;
+    if (Math.abs(deltaY) > 50) {
+      triggerFlip();
+    }
+  };
 
   const handleCardClick = () => {
     if (isFlipped) {
@@ -98,7 +69,12 @@ function App() {
   return (
     <>
       <div className={`app-layout ${showHomePage ? 'split-screen' : ''}`}>
-        <div className={`card-section ${showHomePage ? 'slide-left' : ''}`}>
+        <div
+          className={`card-section ${showHomePage ? 'slide-left' : ''}`}
+          onWheel={handleCardWheel}
+          onTouchStart={handleCardTouchStart}
+          onTouchEnd={handleCardTouchEnd}
+        >
           <div className="container">
             <Card
               isFlipped={isFlipped}
