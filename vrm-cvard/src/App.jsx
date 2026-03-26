@@ -3,8 +3,19 @@ import Card from './components/Card';
 import ScrollIndicators from './components/ScrollIndicators';
 import ContactModal from './components/ContactModal';
 import Welcome from './pages/Welcome';
+import CustomerReviewForm from './pages/CustomerReviewForm';
 
 function App() {
+  const normalizePath = (path) => {
+    if (!path) return '/';
+    return path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+  };
+
+  const [currentPath, setCurrentPath] = useState(() =>
+    normalizePath(window.location.pathname),
+  );
+  const isCustomerReviewFormPage = currentPath === '/customerreviewform';
+
   const [isFlipped, setIsFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHomePage, setShowHomePage] = useState(false);
@@ -20,6 +31,12 @@ function App() {
 
   // Manage body class based on view
   useEffect(() => {
+    if (isCustomerReviewFormPage) {
+      document.body.classList.remove('card-view');
+      document.body.classList.remove('split-view');
+      return;
+    }
+
     if (showHomePage) {
       document.body.classList.remove('card-view');
       document.body.classList.add('split-view');
@@ -27,7 +44,14 @@ function App() {
       document.body.classList.add('card-view');
       document.body.classList.remove('split-view');
     }
-  }, [showHomePage]);
+  }, [showHomePage, isCustomerReviewFormPage]);
+
+  // Keep page content in sync with browser back/forward.
+  useEffect(() => {
+    const onPopState = () => setCurrentPath(normalizePath(window.location.pathname));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   const triggerFlip = () => {
     if (isFlippingRef.current) return;
@@ -65,6 +89,18 @@ function App() {
       setShowHomePage(true);
     }
   };
+
+  if (isCustomerReviewFormPage) {
+    return (
+      <>
+        <CustomerReviewForm />
+        <ContactModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <>
