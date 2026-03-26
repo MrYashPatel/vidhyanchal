@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Header from '../components/Header';
 
 const CustomerReviewForm = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +25,8 @@ const CustomerReviewForm = () => {
   };
 
   return (
-    <div className="welcome-page customer-review-page">
+    <div className="welcome-page">
+      <Header />
       <div className="welcome-hero">
         <div className="welcome-hero-content">
           <h1 className="welcome-title">Customer Review Form</h1>

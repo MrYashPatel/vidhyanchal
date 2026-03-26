@@ -11,10 +11,21 @@ function App() {
     return path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
   };
 
-  const [currentPath, setCurrentPath] = useState(() =>
-    normalizePath(window.location.pathname),
+  const getIsCustomerReviewFormPage = () => {
+    const path = normalizePath(window.location.pathname);
+    const hash = (window.location.hash || '').replace(/^#/, '');
+
+    return (
+      path === '/customerreviewform' ||
+      path === '/custreviewform' ||
+      hash === 'customerreviewform' ||
+      hash === 'custreviewform'
+    );
+  };
+
+  const [isCustomerReviewFormPage, setIsCustomerReviewFormPage] = useState(
+    getIsCustomerReviewFormPage(),
   );
-  const isCustomerReviewFormPage = currentPath === '/customerreviewform';
 
   const [isFlipped, setIsFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,11 +57,20 @@ function App() {
     }
   }, [showHomePage, isCustomerReviewFormPage]);
 
-  // Keep page content in sync with browser back/forward.
+  // Reset card flip state when leaving/entering the standalone form page.
   useEffect(() => {
-    const onPopState = () => setCurrentPath(normalizePath(window.location.pathname));
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    if (isCustomerReviewFormPage) setIsFlipped(false);
+  }, [isCustomerReviewFormPage]);
+
+  // Keep page content in sync with browser back/forward + hash changes.
+  useEffect(() => {
+    const onRouteChange = () => setIsCustomerReviewFormPage(getIsCustomerReviewFormPage());
+    window.addEventListener('popstate', onRouteChange);
+    window.addEventListener('hashchange', onRouteChange);
+    return () => {
+      window.removeEventListener('popstate', onRouteChange);
+      window.removeEventListener('hashchange', onRouteChange);
+    };
   }, []);
 
   const triggerFlip = () => {

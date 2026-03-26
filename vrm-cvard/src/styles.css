@@ -618,11 +618,6 @@ body::-webkit-scrollbar {
     overflow-y: auto;
 }
 
-/* Standalone page (no card split view / no need to account for header height). */
-.customer-review-page {
-    padding-top: 40px;
-}
-
 .back-button-top {
     position: fixed;
     top: 90px;
