@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
 
 const CustomerReviewForm = () => {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
+    serviceOpted: '',
+    rating: 0,
     message: '',
   });
 
@@ -16,24 +15,39 @@ const CustomerReviewForm = () => {
     });
   };
 
+  const handleRatingClick = (value) => {
+    setFormData({
+      ...formData,
+      rating: value,
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Send collected details to your WhatsApp number.
-    const message = `Hi! I have a review for your resume services.%0A%0AName: ${formData.name}%0AEmail: ${formData.email}%0APhone: ${formData.phone}%0AMessage: ${formData.message}`;
-    window.open(`https://wa.me/918128530118?text=${message}`, '_blank');
+    // For now (no Mongo yet): persist the review locally so the homepage can render it.
+    const reviewsKey = 'customerReviews';
+    const existingRaw = window.localStorage.getItem(reviewsKey);
+    const existingReviews = existingRaw ? JSON.parse(existingRaw) : [];
+
+    const newReview = {
+      name: formData.name,
+      service: formData.serviceOpted,
+      rating: formData.rating,
+      review: formData.message,
+      date: new Date().toISOString(),
+    };
+
+    window.localStorage.setItem(reviewsKey, JSON.stringify([newReview, ...existingReviews]));
+
+    // Send the user back to the reviews section.
+    window.location.href = '/#reviews';
   };
 
   return (
     <div className="welcome-page">
-      <Header />
       <div className="welcome-hero">
-        <div className="welcome-hero-content">
-          <h1 className="welcome-title">Customer Review Form</h1>
-          <p className="welcome-description" style={{ marginBottom: 25 }}>
-            Share your feedback after the consultation.
-          </p>
-
+        <div className="welcome-hero-content customer-review-hero-content">
           <div className="form-section" style={{ margin: '0 auto', maxWidth: 720 }}>
             <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
@@ -50,33 +64,73 @@ const CustomerReviewForm = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                <label htmlFor="serviceOpted">Service Opted</label>
+                <select
+                  id="serviceOpted"
+                  name="serviceOpted"
+                  value={formData.serviceOpted}
                   onChange={handleInputChange}
                   required
-                  placeholder="Enter your email"
+                >
+                  <option value="" disabled>
+                    Select a service
+                  </option>
+                  <option value="Entry Level Resume">Entry Level Resume</option>
+                  <option value="Professional Resume">Professional Resume</option>
+                  <option value="Executive Resume">Executive Resume</option>
+                  <option value="ATS Optimized Resume">ATS Optimized Resume</option>
+                  <option value="Cover Letter">Cover Letter</option>
+                  <option value="LinkedIn Profile Optimization">
+                    LinkedIn Profile Optimization
+                  </option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Rate (out of 5)</label>
+                <div
+                  className="rating-stars"
+                  role="radiogroup"
+                  aria-label="Rate out of 5"
+                >
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`star-button ${
+                        formData.rating >= value ? 'active' : ''
+                      }`}
+                      onClick={() => handleRatingClick(value)}
+                      aria-label={`${value} star`}
+                      aria-checked={formData.rating === value}
+                      role="radio"
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+
+                {/* Hidden input to allow native form validation for rating */}
+                <input
+                  className="rating-hidden-input"
+                  type="number"
+                  id="rating"
+                  name="rating"
+                  value={formData.rating}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      rating: Number(e.target.value),
+                    })
+                  }
+                  min="1"
+                  max="5"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone">Phone</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your phone number"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="message">Message</label>
+                <label htmlFor="message">Your Review</label>
                 <textarea
                   id="message"
                   name="message"
@@ -87,8 +141,11 @@ const CustomerReviewForm = () => {
                 />
               </div>
 
-              <button type="submit" className="submit-button">
-                Send via WhatsApp
+              <button
+                type="submit"
+                className="submit-button customer-review-submit-button"
+              >
+                Write a Review
               </button>
             </form>
           </div>

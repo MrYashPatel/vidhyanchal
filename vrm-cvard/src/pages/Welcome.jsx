@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 
 const Welcome = () => {
@@ -9,7 +9,7 @@ const Welcome = () => {
     message: ''
   });
 
-  const testimonials = [
+  const baseTestimonials = [
     {
       name: 'Rajesh Kumar',
       service: 'Professional Resume',
@@ -53,6 +53,29 @@ const Welcome = () => {
       date: 'December 2024'
     }
   ];
+  const [customerTestimonials, setCustomerTestimonials] = useState([]);
+
+  const formatReviewDate = (dateValue) => {
+    if (!dateValue) return '';
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return dateValue;
+    return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  useEffect(() => {
+    const reviewsKey = 'customerReviews';
+    const existingRaw = window.localStorage.getItem(reviewsKey);
+    if (!existingRaw) return;
+
+    try {
+      const parsed = JSON.parse(existingRaw);
+      if (Array.isArray(parsed)) setCustomerTestimonials(parsed);
+    } catch (e) {
+      // Ignore malformed localStorage data.
+    }
+  }, []);
+
+  const testimonials = [...customerTestimonials, ...baseTestimonials];
 
   const services = [
     { name: 'Entry Level Resume', price: '₹499' },
@@ -209,7 +232,7 @@ const Welcome = () => {
                 </div>
               </div>
               <p className="testimonial-text">{testimonial.review}</p>
-              <p className="testimonial-date">{testimonial.date}</p>
+              <p className="testimonial-date">{formatReviewDate(testimonial.date)}</p>
             </div>
           ))}
         </div>
